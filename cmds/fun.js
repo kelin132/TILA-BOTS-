@@ -315,3 +315,9 @@ const out = [
 ].join("\n")
 
 return m.send(out)
+} catch (e) {
+ console.error("ship error", e)
+ if (m.sendErr) return await m.sendErr(e)
+ return m.send("An error occurred while computing the ship.")
+ }
+})
