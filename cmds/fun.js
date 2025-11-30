@@ -74,3 +74,13 @@ if (["1", "2"].includes(choice)) {
   wyrGames.delete(m.sender)
 
   const result = `You chose: ${chosenText}
+Opponent: ${otherText}
+Poll simulation:
+1️⃣ ${session.q.a} — ${p1}%
+2️⃣ ${session.q.b} — ${p2}%
+${p1 > p2 ? "Most people preferred option 1." : p2 > p1 ? "Most people preferred option 2." : "It's a tie!"}`
+  return sendMsg(result)
+}
+
+// If user passed a text arg that's not recognized, show help
+return sendMsg(`Would You Rather command usage:
