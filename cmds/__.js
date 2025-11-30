@@ -62,33 +62,33 @@ kord({
       ).join('\n')
       const formattedCmds = await changeFont(cmdList, getRandomFont())
       
-      let menu = `\`\`\`┌────═━┈ ${config().BOT_NAME} ┈━═────┐
- ✇ ▸ Category: ${actualType.toUpperCase()}
- ✇ ▸ Commands: ${types[actualType].length}
- ✇ ▸ Prefix: ${prefix}
-└──────═━┈┈━═──────┘\`\`\`
+      let menu = ` ╭───config().BOT_NAME─────────╮ 
+┊͙ ✧ Owner:{config().OWNER_NAME}
+┊͙ ✧ User: m.pushName
+┊͙ ✧ Plugins:{commands.length} 
+╰───────────────────────────╯
 ${readmore}
 
-     ┏ ${at} ┓ 
-┍   ─┉─ • ─┉─    ┑ 
+     🌸 ${at} 🌸
+ •──────────•
 ${formattedCmds}
-┕    ─┉─ • ─┉─   ┙ 
+ •──────────•
 
 Tip: Use ${prefix}menu to see all categories`
       
-      const bodyContent = `     ┏ ${at} ┓ 
-┍   ─┉─ • ─┉─    ┑ 
+      const bodyContent = `     🌸 ${at} 🌸
+ •──────────• 
 ${formattedCmds}
-┕    ─┉─ • ─┉─   ┙ 
+ •──────────• 
 
-Tip: Use ${prefix}menu to see all categories`
+Tip: Use *Support* to join our official group`
       
       const styledBody = await changeFont(bodyContent, getRandomFont())
-      const final = `\`\`\`┌────═━┈ ${config().BOT_NAME} ┈━═────┐
- ✇ ▸ Category: ${actualType.toUpperCase()}
- ✇ ▸ Commands: ${types[actualType].length}
- ✇ ▸ Prefix: ${prefix}
-└────────═━┈┈━═────────┘\`\`\`
+      const final = ` ╭───config().BOT_NAME─────────╮ 
+┊͙ ✧ Owner:{config().OWNER_NAME}
+┊͙ ✧ User: m.pushName
+┊͙ ✧ Plugins:{commands.length} 
+╰───────────────────────────╯
 ${readmore}
 
 ${styledBody}`
@@ -100,15 +100,12 @@ ${styledBody}`
     const uptime = await secondsToHms(process.uptime())
     const memoryUsage = format(os.totalmem() - os.freemem())
     
-    let menu = `\`\`\`┌────═━┈ ${config().BOT_NAME} ┈━═────┐
- ✇ ▸ Owner: ${config().OWNER_NAME}
- ✇ ▸ User: ${m.pushName}
- ✇ ▸ Plugins: ${commands.length}
- ✇ ▸ Uptime: ${uptime}
- ✇ ▸ Memory: ${memoryUsage}
- ✇ ▸ Version: v${version}
- ✇ ▸ Platform: ${m.client.platform()}
-└───────═━┈┈━═──────┘\`\`\`
+let menu = `
+╭───config().BOT_NAME─────────╮ 
+┊͙ ✧ Owner:{config().OWNER_NAME}
+┊͙ ✧ User: m.pushName
+┊͙ ✧ Plugins:{commands.length} 
+╰───────────────────────────╯
 ${readmore}
 
 `
