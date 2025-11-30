@@ -84,3 +84,92 @@ ${p1 > p2 ? "Most people preferred option 1." : p2 > p1 ? "Most people preferred
 
 // If user passed a text arg that's not recognized, show help
 return sendMsg(`Would You Rather command usage:
+
+
+kord({
+  cmd: "howhot",
+  desc: "Fun: check how hot someone is",
+  react: "😍",
+  fromMe: wtype,
+  type: "fun",
+}, async (m) => {
+  try {
+    const raw = (m.text || "").trim()
+    const arg = raw.split(/\s+/).slice(1).join(" ").trim()
+
+    // Determine target name (argument > quoted > sender)
+    let target = ""
+    if (arg) {
+      target = arg
+    } else if (m.quoted && m.quoted.sender && m.quoted.pushName) {
+      target = m.quoted.pushName
+    } else {
+      target = m.pushName || "You"
+    }
+
+    // Deterministic hash so same name yields same score (fun and consistent)
+    const hashScore = (s) => {
+      let h = 0
+      for (let i = 0; i < s.length; i++) {
+        h = (h << 5) - h + s.charCodeAt(i)
+        h |= 0
+      }
+      return Math.abs(h) % 101 // 0..100
+    }
+
+    const score = hashScore(target)
+
+    // Heart bar (10 slots)
+    const filled = Math.round(score / 10)
+    const empty = 10 - filled
+    const bar = "💖".repeat(filled) + "♡".repeat(empty)
+
+    // Simple rating text
+    let rating = ""
+    if (score >= 90) rating = "Smoking hot 🔥"
+    else if (score >= 75) rating = "Very hot 🔥"
+    else if (score >= 60) rating = "Hot 😊"
+    else if (score >= 40) rating = "Cute 🙂
+"
+    else if (score >= 20) rating = "Hmm... average 🤔"
+    else rating = "Not feeling it 😅"
+
+    // Fun comments by bucket
+    const comments = {
+      0: ["Brutal honesty incoming.", "Oof, tough luck — but personality wins!"],
+      20: ["Work that confidence!", "A hidden gem in the making."],
+      40: ["Nice! Keep smiling.", "Looking good today."],
+      60: ["Looking great! 🥰", "Definitely catches the eye."],
+      80: ["Whoa! People stop and stare.", "Absolute banger!"],
+      90: ["Stop it, you're on fire!", "Literally dazzling ✨"]
+    }
+    const pickComment = () => {
+      if (score >= 90) return comments[90][Math.floor(Math.random()*comments[90].length)]
+      if (score >= 80) return comments[80][Math.floor(Math.random()*comments[80].length)]
+      if (score >= 60) return comments[60][Math.floor(Math.random()*comments[60].length)]
+      if (score >= 40) return comments[40][Math.floor(Math.random()*comments[40].length)]
+      if (score >= 20) return comments[20][Math.floor(Math.random()*comments[20].length)]
+      return comments[0][Math.floor(Math.random()*comments[0].length)]
+    }
+
+    const comment = pickComment()
+
+    const output = [
+      `╔═━┈ How Hot Is ${target} ┈━═╗`,
+      `🔥 Score : ${score}/100`,
+      ` ${bar}`,
+      `✨ Rating: ${rating}`,
+      ``,
+      `${comment}`,
+      `╚════════════════════════╝`,
+      ``,
+      `Tip: use ${prefix}howhot <name> or reply to a message with ${prefix}howhot`
+    ].join("\n")
+
+    return m.send(output)
+  } catch (e) {
+    console.error("howhot error", e)
+    if (m.sendErr) return await m.sendErr(e)
+    return m.send("An error occurred.")
+  }
+})
