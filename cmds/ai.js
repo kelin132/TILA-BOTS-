@@ -28,7 +28,7 @@ kord({
 
         var prompt = text || m.quoted?.text
 
-                if (!prompt) return await m.send("Hi!, What's Your Prompt?")
+                if (!prompt) return await m.send("Hi!,What do you want Gemma to do for you 🌸")
 
                 return await m.send(await chatWithAi(prompt, "Gemma"))
 } catch (e) {
