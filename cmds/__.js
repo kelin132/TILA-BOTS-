@@ -31,9 +31,9 @@ const getRandomFont = () => {
 }
 
 kord({
-  cmd: "menu|help",
+  cmd: "help",
   desc: "list of commands",
-  react: "💬",
+  react: "🌸",
   fromMe: wtype,
   type: "help",
 }, async (m) => {
