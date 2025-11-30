@@ -24,3 +24,20 @@ if (!arg) {
   wyrGames.set(m.sender, session)
 
   const header = `╔═━┈ Would You Rather ┈━═╗
+┃ Choose one (reply: ${prefix}wyr 1 or ${prefix}wyr 2)
+╚════════════════════════╝
+      const body = \n1️⃣ ${q.a}\n\n2️⃣ ${q.b}\n\n⏳ Expires in ${Math.floor(expireMs / 1000)}s
+      return sendMsg(${header}\n${body}`)
+ }
+// Custom: "custom Option A | Option B"
+if (arg.toLowerCase().startsWith("custom")) {
+  const rest = arg.slice(6).trim()
+  const sep = rest.includes("|") ? "|" : " / "
+  const partsCustom = rest.split("|").map(s => s.trim()).filter(Boolean)
+  if (partsCustom.length !== 2) {
+    return sendMsg("Invalid format. Use:\nwyr custom Option A | Option B")
+  }
+  const q = { a: partsCustom[0], b: partsCustom[1] }
+  const session = { q, created: Date.now(), expires: Date.now() + expireMs }
+  wyrGames.set(m.sender, session)
+  const header = `╔═━┈ Custom Would You Rather ┈━═╗
