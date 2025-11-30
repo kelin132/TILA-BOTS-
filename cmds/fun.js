@@ -173,3 +173,145 @@ kord({
     return m.send("An error occurred.")
   }
 })
+
+kord({
+ cmd: "ship",
+ desc: "Fun: ship two people and get a compatibility score",
+ react: "💞",
+ fromMe: wtype,
+ type: "fun",
+}, async (m) => {
+ try {
+ const raw = (m.text || "").trim()
+ const args = raw.split(/\s+/).slice(1).join(" ").trim() // everything after command
+// helpers
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v))
+const hashToScore = (s) => {
+  let h = 0
+  for (let i = 0; i < s.length; i++) {
+    h = (h << 5) - h + s.charCodeAt(i)
+    h |= 0
+  }
+  return Math.abs(h) % 101 // 0-100
+}
+const capitalize = (s) => s.replace(/\b\w/g, c => c.toUpperCase())
+const makeShipName = (a, b) => {
+  const clean = str => str.replace(/[^a-zA-Z]/g, "").toLowerCase()
+  const A = clean(a) || "love"
+  const B = clean(b) || "mate"
+  const aMid = Math.ceil(A.length / 2)
+  const bMid = Math.floor(B.length / 2)
+  const name = A.slice(0, aMid) + B.slice(bMid)
+  return capitalize(name)
+}
+const heartBar = (score) => {
+  const full = Math.round(score / 10)
+  const empty = 10 - full
+  return "❤️".repeat(full) + "🖤".repeat(empty)
+}
+
+// try to resolve display name for mentions or text
+const resolveName = async (token) => {
+  // token could be a mention id (contains @) or plain text name
+  if (!token) return ""
+  if (/@/.test(token)) {
+    try {
+      if (m.client && typeof m.client.getName === "function") {
+        const n = await m.client.getName(token)
+        if (n) return n
+      }
+    } catch (e) { /* ignore */ }
+    // fallback: show short id
+    return token.split("@")[0]
+  }
+  return token
+}
+
+// determine targets
+let name1 = ""
+let name2 = ""
+
+// 1) If there are mentions, use first two mentions
+if (m.mentioned && Array.isArray(m.mentioned) && m.mentioned.length >= 2) {
+  name1 = await resolveName(m.mentioned[0])
+  name2 = await resolveName(m.mentioned[1])
+} else if (m.mentioned && Array.isArray(m.mentioned) && m.mentioned.length === 1) {
+  // one mention + sender
+  name1 = await resolveName(m.mentioned[0])
+  name2 = m.pushName || (m.sender ? m.sender.split("@")[0] : "You")
+} else if (m.quoted) {
+  // quoted message: ship sender and quoted sender
+  name1 = m.pushName || (m.sender ? m.sender.split("@")[0] : "You")
+  name2 = m.quoted && (m.quoted.pushName || (m.quoted.sender ? m.quoted.sender.split("@")[0] : "")) || ""
+} else if (args) {
+  // parse args: either "name1 | name2" or "name1 name2" or "name1, name2"
+  let parts = []
+  if (args.includes("|")) parts = args.split("|")
+  else if (args.includes(",")) parts = args.split(",")
+  else parts = args.split(/\s{2,}/) // split on double spaces
+  if (parts.length === 1) {
+    // maybe two single-word names separated by single space
+    const words = args.split(/\s+/)
+    if (words.length >= 2) {
+      name1 = words[0]
+      name2 = words.slice(1).join(" ")
+    } else {
+      name1 = words[0]
+      name2 = m.pushName || (m.sender ? m.sender.split("@")[0] : "You")
+    }
+  } else {
+    name1 = parts[0].trim()
+    name2 = parts[1].trim()
+  }
+} else {
+  // default: ship sender with a random person (fun fallback)
+  name1 = m.pushName || (m.sender ? m.sender.split("@")[0] : "You")
+  name2 = "someone special"
+}
+
+// final fallbacks
+name1 = (name1 && String(name1).trim()) || (m.pushName || (m.sender ? m.sender.split("@")[0] : "You"))
+name2 = (name2 && String(name2).trim()) || "someone special"
+
+// avoid shipping same person with themselves
+if (name1 === name2) {
+  return m.send(`You can't ship ${name1} with themselves 💔\nTry: ${prefix}ship ${name1} | someone`)
+}
+
+// deterministic score based on combined identifiers if available, else names
+const idA = (m.mentioned && m.mentioned[0]) || name1
+const idB = (m.mentioned && m.mentioned[1]) || name2
+const baseKey = `${idA}::${idB}`
+let score = hashToScore(baseKey)
+
+// small random jitter so repeated immediate requests aren't identical but keep within reason
+const jitter = (Math.abs(hashToScore(baseKey + "j")) % 7) - 3 // -3..3
+score = clamp(score + jitter, 0, 100)
+
+// tweak: if both names share letters, slightly boost
+const shared = name1.toLowerCase().split("").filter((c, i, arr) => /[a-z]/.test(c) && name2.toLowerCase().includes(c))
+if (new Set(shared).size >= 3) score = clamp(score + 5, 0, 100)
+
+const shipName = makeShipName(name1, name2)
+const bar = heartBar(score)
+
+// message buckets
+let verdict = ""
+if (score >= 90) verdict = "Perfect match! 💘"
+else if (score >= 75) verdict = "Amazing chemistry! 💖"
+else if (score >= 50) verdict = "Could work out! 🙂"
+else if (score >= 30) verdict = "Hmm... needs effort 🤔"
+else verdict = "Not likely, but never say never 😅"
+
+const out = [
+  `╔═━┈ Ship Meter ┈━═╗`,
+  `💑 ${name1} + ${name2} = ${shipName}`,
+  `🔥 Score: ${score}/100`,
+  `${bar}`,
+  `✨ ${verdict}`,
+  ``,
+  `Tip: use "${prefix}ship @user1 @user2" or "${prefix}ship Name1 | Name2"`,
+  `╚════════════════════════╝`
+].join("\n")
+
+return m.send(out)
